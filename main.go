@@ -1,5 +1,7 @@
 package main
 
+//import our dependencies
+
 import (
 	"encoding/json"
 	"log"
@@ -8,12 +10,13 @@ import (
 )
 
 //Message wraps a message and stamps it
+//Define a custom type to hold our data.
 type Message struct {
-	Message string `json:"message"` //tells the decoder what to decode into
+	Message string `json:"message"` //tells the decoder what to decode into this is needed if the property is lowercase and the property is uppercase
 	Stamp   int64  `json:"stamp,omitempty"`
 }
 
-//BuisnessLogic does awesome BuisnessLogic
+//BuisnessLogic does awesome BuisnessLogic taking a string and returning a pointer to a Message
 func BuisnessLogic(text string) *Message {
 	mess := &Message{}
 	mess.Message = text
@@ -22,18 +25,24 @@ func BuisnessLogic(text string) *Message {
 }
 
 //Echo echoes what you send
+//http.ResponseWriter is responsible for writing things back to the response stream
+//http.Request represents the incoming request
 func Echo(res http.ResponseWriter, req *http.Request) {
 	var (
 		jsonDecoder = json.NewDecoder(req.Body) //decoder reading from the post body
 		jsonEncoder = json.NewEncoder(res)      //encoder writing to the response stream
-		message     = &Message{}         // something to hold our data
+		message     = &Message{}                // something to hold our data
 	)
+	//Add a content type header
 	res.Header().Add("Content-type", "application/json")
-	if err := jsonDecoder.Decode(message); err != nil { //decode our data into our struct
+	//decode our data into our struct. Notice the assignment and the err check can be done is a single line as long as you use the ;
+	if err := jsonDecoder.Decode(message); err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	//call our BusinessLogic function and assign the return value
 	pointless := BuisnessLogic(message.Message)
+	//Encode the Message contained in pointless and write it back to the response.
 	if err := jsonEncoder.Encode(pointless); err != nil { //encode our data and write it back to the response stream
 		res.WriteHeader(http.StatusInternalServerError)
 		return
@@ -42,6 +51,7 @@ func Echo(res http.ResponseWriter, req *http.Request) {
 
 //Setup our simple router
 func router() http.Handler {
+	//http.HandleFunc expects a func that takes a http.ResponseWriter and http.Request
 	http.HandleFunc("/api/echo", Echo)
 	return http.DefaultServeMux //this is a stdlib http.Handler
 }
