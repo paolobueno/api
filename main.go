@@ -49,10 +49,48 @@ func Echo(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func MapMe(rw http.ResponseWriter, req *http.Request) {
+	var (
+		jsonEncoder = json.NewEncoder(rw)
+	)
+
+	myMap := map[string]Message{
+		"message": Message{
+			Message: "hello map",
+			Stamp:   time.Now().Unix(),
+		},
+	}
+
+	if err := jsonEncoder.Encode(myMap); err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func SliceMe(rw http.ResponseWriter, req *http.Request) {
+	var (
+		jsonEncoder = json.NewEncoder(rw)
+	)
+
+	mySlice := []Message{
+		Message{
+			Message: "hello map",
+			Stamp:   time.Now().Unix(),
+		},
+	}
+
+	if err := jsonEncoder.Encode(mySlice); err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
 //Setup our simple router
 func router() http.Handler {
 	//http.HandleFunc expects a func that takes a http.ResponseWriter and http.Request
 	http.HandleFunc("/api/echo", Echo)
+	http.HandleFunc("/api/map", MapMe)
+	http.HandleFunc("/api/slice", SliceMe)
 	return http.DefaultServeMux //this is a stdlib http.Handler
 }
 
