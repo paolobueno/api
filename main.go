@@ -16,8 +16,8 @@ type Message struct {
 	Stamp   int64  `json:"stamp,omitempty"`
 }
 
-//BuisnessLogic does awesome BuisnessLogic taking a string and returning a pointer to a Message
-func BuisnessLogic(text string) *Message {
+//BusinessLogic does awesome BusinessLogic taking a string and returning a pointer to a Message
+func BusinessLogic(text string) *Message {
 	mess := &Message{}
 	mess.Message = text
 	mess.Stamp = time.Now().Unix()
@@ -41,9 +41,27 @@ func Echo(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	//call our BusinessLogic function and assign the return value
-	pointless := BuisnessLogic(message.Message)
+	pointless := BusinessLogic(message.Message)
 	//Encode the Message contained in pointless and write it back to the response.
 	if err := jsonEncoder.Encode(pointless); err != nil { //encode our data and write it back to the response stream
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+type TimeHolder struct {
+	Time int64 `json:"time"`
+}
+
+func Time(res http.ResponseWriter, req *http.Request) {
+	var (
+		timeHolder = &TimeHolder{}
+		encoder    = json.NewEncoder(res)
+	)
+	res.Header().Add("Content-type", "application/json")
+	timeHolder.Time = time.Now().Unix()
+
+	if err := encoder.Encode(timeHolder); err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -53,6 +71,7 @@ func Echo(res http.ResponseWriter, req *http.Request) {
 func router() http.Handler {
 	//http.HandleFunc expects a func that takes a http.ResponseWriter and http.Request
 	http.HandleFunc("/api/echo", Echo)
+	http.HandleFunc("/api/time", Time)
 	return http.DefaultServeMux //this is a stdlib http.Handler
 }
 
